@@ -7,7 +7,7 @@ all:main
 	@echo "Congratulations"
 	
 main: $(OBJS)
-		$(CXX)  $(OBJS) -o main $(LDFLAGS)
+		$(CXX)  $(OBJS) -o bach $(LDFLAGS)
 	
 %.o:%.cpp
 	$(CXX) -c $(CFLAGS) -o $@ $<
