@@ -4,7 +4,8 @@
 #include <stdio.h>
 #include <cassert>
 #include <vector>
-
+#include "z3++.h"
+#include "general.h"
 
 class Monomial{
 private:
@@ -20,7 +21,7 @@ public:
 	~Monomial();
 	int degree() const;											// degree of the monomial
 	int dimension() const;										// dimension of the monomial
-
+	z3::expr intEval(const z3::expr_vector& domain) const;
 	Monomial & operator  = (const Monomial & monomial);
 	Monomial & operator += (const Monomial & monomial);			// we assume the two monomials can be added up
 	Monomial & operator *= (const Monomial & monomial);
@@ -28,7 +29,10 @@ public:
 	const Monomial operator * (const Monomial & monomial) const;
 
 	bool isLinear(int & index) const;					  // Check if the degree of the monomial is 1. If so then return the index of the variable of degree 1.
-//	std::string toString(const vector<string> & varNames) const;
+	std::string toString();
+	
+	
+	
 	friend bool operator < (const Monomial & a, const Monomial & b);	// Define a partial order over the monomials
 	friend bool operator == (const Monomial & a, const Monomial & b);
 	friend class Polynomial;

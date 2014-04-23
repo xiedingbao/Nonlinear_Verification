@@ -30,7 +30,6 @@
 		}
 		return id;
 	}
-
 %}
 
 %type<automaton> automaton 
@@ -313,7 +312,6 @@ invariant_set:
 	{ 
 		$$=$1;
 	}
-	|TRUE{$$=NULL;}
 	;
 guard_set:
 	constr_list
@@ -341,7 +339,6 @@ constr_list:
 	{
 		$$=$2;
 	}
-
 	;
 
 constr_list_no_and:
@@ -456,6 +453,11 @@ NUM
 	int I = atoi($1);
 	$$ = new Polynomial(I, numVars);
 }
+|ODEpolynomial
+{
+	$$=$1;
+}
+
 ;
 
 ODES:ODES '&' ODEsolution
@@ -555,6 +557,8 @@ ODEpolynomial '^' NUM
 {
 	if(strcmp($3,"0")!=0)
 		yyerror("only var(0) is permitted\n");
+	if(strcmp($1,"t")==0)
+		yyerror("t(0) is not permitted\n");
 	int id = check_var($1);
 	int numVars = aut->dimension()+1;
 	int I = 1;

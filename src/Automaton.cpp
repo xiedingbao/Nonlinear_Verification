@@ -28,11 +28,34 @@ PolynomialConstraint::~PolynomialConstraint(){}
 string PolynomialConstraint::toString(){
 	string result="Constraint: "+p.toString();
 	switch(op){
-		case LT
+		case LT:result+="<";break;
+		case LE:result+="<=";break;
+		case EQ:result+="==";break;
+		case GT:result+=">";break;
+		case GE:result+=">=";break;
+		default:fprintf(stderr,"unsupported operator");
+	}
+	result += value;
+	return result;
+}
+
+
+
 //class resetMap
 resetMap::resetMap(string _var,Polynomial& _p):var(_var),p(_p){}
 
+string resetMap::toString(){
+	string result="reset "+var+" := ";
+	result+=p.toString();
+	return result;
+}
+
 Solution::Solution(string _var,Polynomial& _p):var(_var),p(_p){}
+
+string Solution::toString(){
+	string result="Solution:"+var+"(t)="+p.toString();
+	return result;
+}
 
 //class State
 State::State(string _name):name(_name){}
@@ -41,10 +64,26 @@ void State::addInvariant(PolynomialConstraint& _p){
 	invariants.push_back(_p);
 }
 
+string State::toString(){
+	string result="State: "+name+"\n";
+	for(unsigned i=0;i<invariants.size();i++)
+		result+=invariants[i].toString()+"\n";
+	for(unsigned i=0;i<ODEs.size();i++)
+		result+=ODEs[i].toString()+"\n";
+	return result;
+}
+
 //class Transition
 Transition::Transition(string _to,string _label):to(_to),label(_label){}
 
-
+string Transition::toString(){
+	string result="Transition: "+label+" source: "+from+" target: "+to+"\n";
+	for(unsigned i=0;i<guards.size();i++)
+		result+=guards[i].toString()+"\n";
+	for(unsigned i=0;i<resets.size();i++)
+		result+=resets[i].toString()+"\n";
+	return result;
+}
 
 //class Automaton
 Automaton::Automaton(string name):_name(name){};
@@ -96,6 +135,7 @@ bool Automaton::init(){
 	int count=1;
 	for(unsigned i=0;i<states.size();i++){
 		State& st=states[i];
+		substitute_invariant(st);
 		st.nextTrans.clear();
 		if(st.is_init){
 			initState = &st;
@@ -128,8 +168,11 @@ bool Automaton::init(){
 	}
 	return true;
 }
-
-
+/* TODO  */
+void Automaton::substitute_invariant(State& st){
+//	for(unsigned i=0;i<invariants.size();i++){
+//		Polynomial& p = invariants[i].p;
+}		
 
 
 

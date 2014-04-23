@@ -71,30 +71,50 @@ bool Monomial::isLinear(int & index) const{
 	return false;
 }
 
+string unsigned2string(unsigned i){
+	char ch[256];
+	sprintf(ch,"%d",i);
+	return string(ch);
+}
+string int2string(int i){
+	char ch[256];
+	sprintf(ch,"%i",i);
+	return string(ch);
+}
 
-/*
-string Monomial::toString(, const vector<string> & varNames) const{
+z3::expr Monomial::intEval(const z3::expr_vector& domain)const{
+	assert(domain.size()==degrees.size());
+	context& c=domain[0].ctx();
+	z3::expr result=c.real_val(int2string(coefficient).c_str());
+	for(unsigned i=0;i<degrees.size();i++){
+		for(int j=0;j<degrees[i];j++)
+			result*=domain[i];
+	}
+	return result;
+}
+
+
+string Monomial::toString(){
 	string strMono;
 	strMono += '(';
-	strMono += coefficient;
-	for(int i=0; i<degrees.size(); i++){
+	strMono += int2string(coefficient);
+	for(unsigned i=0; i<degrees.size(); i++){
 		if(degrees[i] != 0){
 			if(degrees[i] == 1){
 				strMono += ' ';
 				strMono += '*';
 				strMono += ' ';
-				strMono += varNames[i];
+			//	strMono += varNames[i];
+				strMono +="var_"+unsigned2string(i);
 			}
 			else{
 				strMono += ' ';
 				strMono += '*';
 				strMono += ' ';
-				strMono += varNames[i];
+			//	strMono += varNames[i];
+				strMono +="var_"+unsigned2string(i);
 				strMono += '^';
-				char strNum[256];
-				sprintf(strNum, "%d", degrees[i]);
-				string num(strNum);
-				strMono += num;
+				strMono += unsigned2string(degrees[i]);
 			}
 		}
 	}
@@ -102,7 +122,7 @@ string Monomial::toString(, const vector<string> & varNames) const{
 	return strMono;
 }
 
-*/
+
 bool operator == (const Monomial & a, const Monomial & b){
 	if (a.d == b.d){
 		for(unsigned i=0; i<a.degrees.size(); i++){

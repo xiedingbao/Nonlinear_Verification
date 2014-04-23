@@ -81,6 +81,7 @@ public:
 	Automaton(string name);
 	string name();
 	bool init();
+	void substitute_invariant(State& st);
 	void print();
 	State* getState(unsigned ID);
 	Transition* getTransition(unsigned ID);

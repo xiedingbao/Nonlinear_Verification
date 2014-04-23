@@ -6,11 +6,11 @@
 class Polynomial{				// polynomials in monomial form
 private:
 	std::vector<Monomial> monomials;
+//	std::vector<std::string> varNames;
 public:
 	Polynomial();														// empty polynomial
 	Polynomial(const int constant, const int numVars);			// constant polynomial where dim is the number of the variables
-//	Polynomial(const std::vector<int> & coefficients);					// linear polynomial with the given coefficients, the input matrix is a row vector
-	Polynomial(const Monomial & monomial);								// polynomial with one monomial
+	Polynomial(const Monomial & monomial);		// polynomial with one monomial
 	Polynomial(const std::vector<Monomial> & monos);
 	Polynomial(const Polynomial & polynomial);
 	~Polynomial();
@@ -42,15 +42,15 @@ public:
 	const Polynomial operator - (const Polynomial & polynomial) const;
 	const Polynomial operator * (const Polynomial & polynomial) const;
 
-
+	z3::expr intEval(const z3::expr_vector& domain) const;
 //	void rmConstant();				// remove the constant part
 	int degree() const;				// degree of the polynomial
 	bool isZero() const;
 
-	void derivative(Polynomial & result, const int varIndex) const;					// derivative with respect to a variable
-
+	Polynomial derivative(const int varIndex) const;					// derivative with respect to a variable
 //	void sub(Polynomial & result, const Polynomial & P, const int order) const;		// compute the subtraction of the monomials with some order
-//	void toString(string & result, const vector<string> & varNames) const;	// transform a polynomial to a string
+	bool isConstant();	
+	std::string toString();	// transform a polynomial to a string
 };
 
 #endif

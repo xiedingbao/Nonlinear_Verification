@@ -264,8 +264,7 @@ bool Polynomial::isZero() const{
 	}
 }
 
-
-void Polynomial::derivative(Polynomial & result, const int varIndex) const{
+Polynomial Polynomial::derivative( const int varIndex) const{
 	result = *this;
 
 	vector<Monomial>::iterator iter;
@@ -282,6 +281,7 @@ void Polynomial::derivative(Polynomial & result, const int varIndex) const{
 			iter = result.monomials.erase(iter);
 		}
 	}
+	return result;
 }
 
 
@@ -310,39 +310,42 @@ void Polynomial::sub(Polynomial & result, const Polynomial & P, const int order)
 	Polynomial P1(monomials1), P2(monomials2);
 	result = P1 - P2;
 }
-
-void Polynomial::toString(string & result, const vector<string> & varNames) const
-{
-	string strPoly;
-
-	if(monomials.size() == 0)
-	{
-		strPoly = "(0)";
-		return;
-	}
-
-	list<Monomial>::const_iterator iter, iter_last;
-	iter_last = monomials.end();
-	--iter_last;
-
-	strPoly += '(';
-
-	for(iter = monomials.begin(); iter != iter_last; ++iter)
-	{
-		string strTemp;
-		iter->toString(strTemp, varNames);
-
-		strPoly += strTemp;
-		strPoly += ' ';
-		strPoly += '+';
-		strPoly += ' ';
-	}
-
-	string strTemp2;
-	monomials.back().toString(strTemp2, varNames);
-	strPoly += strTemp2;
-	strPoly += ')';
-
-	result = strPoly;
-}
 */
+
+string Polynomial::toString() {
+	string strPoly;
+	if(monomials.size() == 0){
+		return "(0)";
+	}
+	strPoly += '(';
+	for(unsigned i=0;i<monomials.size();i++){
+		strPoly +=monomials[i].toString();
+		if(i!=monomials.size()-1)
+		  strPoly+=" + ";
+	}
+	strPoly += ')';
+	return strPoly;
+}
+int Polynomial::constant(){
+	if(monomials.size()>0 && monomials[0].d==0)
+		return monomials[0].coefficient;
+	return 0;
+}
+z3::expr Polynomial::intEval(const z3::expr_vector& domain)const{
+	assert(domain.size()!=0);
+	context& c=domain[0].ctx();
+	z3::expr exp(c);
+	for(unsigned i=0;i<monomials.size();i++){
+		if(i==0)
+		  exp=monomials[i].intEval(domain);
+		else
+		  exp+=monomials[i].intEval(domain);
+	}
+	return exp;
+}
+
+bool Polynomial::isConstant(){
+	if(monomials.back().d==0)
+		return true;
+	return false;
+}
