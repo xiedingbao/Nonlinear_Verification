@@ -20,6 +20,7 @@ public:
 	PolynomialConstraint(const PolynomialConstraint& pc);
 	PolynomialConstraint& operator = (const PolynomialConstraint& _pc); 
 	~PolynomialConstraint();
+	string toString();
 };
 
 class resetMap{
@@ -27,6 +28,7 @@ public:
 	string var;
 	Polynomial p;
 	resetMap(string var,Polynomial& _p);
+	string toString();
 };
 
 class Solution{
@@ -34,6 +36,7 @@ public:
 	string var;
 	Polynomial p;
 	Solution(string _var,Polynomial& _p);
+	string toString();
 };
 
 
@@ -50,6 +53,7 @@ public:
 
 	State (string _name);
 	void addInvariant(PolynomialConstraint& _p);
+	string toString();
 };
 
 class Transition{
@@ -62,6 +66,7 @@ public:
 	vector<resetMap> resets;
 
 	Transition(string _to, string _label);
+	string toString();
 };
 
 class Automaton{

@@ -1,6 +1,7 @@
 %{
 	#include <stdio.h>
 	#include <stdlib.h>
+	#include <string.h>
 	#include "Automaton.h"
 
 	#define DEBUG false
@@ -45,7 +46,6 @@
 %type<transitionlist> transition_list
 %type<transition> transition
 
-
 %union{
 	char * mystring;
 	Automaton* automaton;
@@ -80,7 +80,6 @@
 %token FORBIDDEN
 %token TRUE
 %token FALSE
-%token AND
 %token <mystring> NUM IDENT 
 
 
@@ -119,7 +118,7 @@ forbidden:
 	{ 	
 		target=$6;
 		State* st=aut->getState(target);
-		if(st==NULL){
+		if(st == NULL){
 			yyerror("The target is not a location of the automaton!");
 			exit(1);
 		}
@@ -132,7 +131,7 @@ forbidden:
 
 automaton:
 	AUTOMATON IDENT {aut=new Automaton($2);} automaton_body END 
-	{
+	{	printf("finish parsing\n");
 		if(syntax_error||!aut->init()){
 			fprintf(stderr,"Syntax Error!\n");
 			exit(1);
@@ -226,9 +225,7 @@ location_block:
 		delete $1;
 		delete $2;
 	}
-	|location ';' transition_list
 	;
-	
 location: 
 	LOC IDENT ':' WHILE invariant_set WAIT '{' ODES '}'  
 	{ 
@@ -303,10 +300,9 @@ assign_set:
 	}
 	;
 assign_set_no_and: 
-	IDENT PRIM ASSIGN polynomial 
+	IDENT PRIM ASSIGN polynomial
 	{
-		check_var($1);
-			
+		check_var($1);	
 		$$=new resetMap($1,*$4);
 		
 	}
@@ -462,22 +458,24 @@ NUM
 }
 ;
 
-ODES:ODES AND ODEsolution
+ODES:ODES '&' ODEsolution
 {
 	$$=$1;
 	$$->push_back(*$3);
 	delete $3;
 }
 |ODEsolution
-{
+{	
 	$$=new vector<Solution>();
 	$$->push_back(*$1);
 	delete $1;
 }
 ;
 
-ODEsolution:IDENT '(' 't' ')' OEQ2 ODEpolynomial
+ODEsolution:IDENT '(' IDENT ')' OEQ2 ODEpolynomial
 {
+	if(strcmp($3,"t")!=0)
+		yyerror("solution should be a function of time t\n");
 	check_var($1);
 	$$ = new Solution($1,*$6);
 	delete $6;
@@ -537,8 +535,10 @@ ODEpolynomial '^' NUM
 	$$ = $2;
 	$$->mul_assign(I);
 }
-|'t'
+|IDENT
 {
+	if(strcmp($1,"t")!=0)
+		yyerror("solution should be a function of time t\n");
 	int numVars = aut->dimension()+1;
 	int I = 1;
 	vector<int> degrees;
@@ -551,8 +551,10 @@ ODEpolynomial '^' NUM
 	$$ = new Polynomial(monomial);
 	
 }
-|IDENT '(' '0' ')'
+|IDENT '(' NUM ')'
 {
+	if(strcmp($3,"0")!=0)
+		yyerror("only var(0) is permitted\n");
 	int id = check_var($1);
 	int numVars = aut->dimension()+1;
 	int I = 1;
@@ -570,6 +572,7 @@ ODEpolynomial '^' NUM
 	int numVars = aut->dimension()+1;
 	int I = atoi($1);
 	$$ = new Polynomial(I, numVars);
+
 }
 ;
 

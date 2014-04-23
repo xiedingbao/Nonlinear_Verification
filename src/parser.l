@@ -31,7 +31,6 @@
 "TRUE" 		{return TRUE;}
 "false" 	{return FALSE;}
 "FALSE" 	{return FALSE;}
-"&" 		{return AND;}
 
 "=" 		{return OEQ2;}
 "==" 		{return OEQ;}
@@ -41,6 +40,7 @@
 "<" 		{return OLT;}
 "'"  		{return PRIM;}
 ":=" 		{return ASSIGN;}
+"^" 		{return '^';}
   
 ([0-9]+)(("."[0-9]+)?)((([eE])([+-]?)([0-9]+))?)  {yylval.mystring = strdup(yytext); return NUM;}
     
@@ -49,8 +49,11 @@
 (["$""?"a-zA-Z]|[_])("$"|"?"|[a-zA-Z]|[0-9]|[_]|[~])* {yylval.mystring = strdup(yytext); return IDENT; }
 
 
-
-
+  /* rules for comments */
+  
+"/*"([^*]|("*"+[^*/]))*"*"+"/" /* skip comment */
+"//".*                         /* skip comment XS*/
+"--".*                         /* skip comment */
 [\n] { ++line_number; }
 [ \t\r]                      
 

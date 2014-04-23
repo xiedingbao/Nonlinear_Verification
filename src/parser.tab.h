@@ -63,17 +63,16 @@ extern int yydebug;
      FORBIDDEN = 272,
      TRUE = 273,
      FALSE = 274,
-     AND = 275,
-     NUM = 276,
-     IDENT = 277,
-     OEQ2 = 278,
-     OEQ = 279,
-     OLT = 280,
-     OGT = 281,
-     OLE = 282,
-     OGE = 283,
-     PRIM = 284,
-     uminus = 285
+     NUM = 275,
+     IDENT = 276,
+     OEQ2 = 277,
+     OEQ = 278,
+     OLT = 279,
+     OGT = 280,
+     OLE = 281,
+     OGE = 282,
+     PRIM = 283,
+     uminus = 284
    };
 #endif
 
@@ -101,7 +100,7 @@ typedef union YYSTYPE
 
 
 /* Line 2058 of yacc.c  */
-#line 105 "parser.tab.h"
+#line 104 "parser.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

@@ -2,17 +2,18 @@
  * the quantifier-free encoding proposed by cimatti in FMCAD2012
  * Author: Dingbao Xie
  * Email: xiedingbao@gmail.com
- * 2014/04/19
+ * 2014/04/19 (start)
  * */
 #ifndef _NONLINEAR_BACH_H
 #define _NONLINEAR_BACH_H
-#include "System.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <cassert>
+#include "System.h"
+#include "Automaton.h"
+#include "parser.tab.h"
 
-
-//extern FILE *yyin;
+extern FILE *yyin;
 int VERBOSE_LEVEL = 0;
 int inputbound=0;
 

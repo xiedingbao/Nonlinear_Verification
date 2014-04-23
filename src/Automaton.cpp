@@ -25,6 +25,10 @@ PolynomialConstraint& PolynomialConstraint::operator = (const PolynomialConstrai
 }
 PolynomialConstraint::~PolynomialConstraint(){}
 
+string PolynomialConstraint::toString(){
+	string result="Constraint: "+p.toString();
+	switch(op){
+		case LT
 //class resetMap
 resetMap::resetMap(string _var,Polynomial& _p):var(_var),p(_p){}
 
@@ -130,11 +134,16 @@ bool Automaton::init(){
 
 
 
-
-
 /* print detailded information of the automaton */
 void Automaton::print(){
-
+	printf("Automaton: %s\nvar:",_name.c_str());
+	for(unsigned i=0;i<vars.size();i++)
+	  printf(" %s",vars[i].c_str());
+	printf("\n");
+	for(unsigned i=0;i<states.size();i++)
+	  printf("%s\n",states[i].toString().c_str());
+	for(unsigned i=0;i<transitions.size();i++)
+	  printf("%s\n",transitions[i].toString().c_str());
 
 }
 

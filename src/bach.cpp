@@ -85,7 +85,7 @@ void process_flags(int agc, char *agv[]) {
 			}
 		}
     }
-/*	if(parameter>=1){
+	if(infilename!=NULL && inputbound>0){
 		printf("Parsing file %s .\n",infilename);
 		yyin = fopen(infilename, "r" );	//doesn't deal with recursive loads 
 		if (yyin == NULL){
@@ -95,12 +95,12 @@ void process_flags(int agc, char *agv[]) {
 		}
         else{
           	yyparse();
-		fclose(yyin);	
+			fclose(yyin);	
 		}
 	}
 	else
 		help_message();
-*/
+
 }
 
 
