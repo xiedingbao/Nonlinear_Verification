@@ -71,24 +71,19 @@ bool Monomial::isLinear(int & index) const{
 	return false;
 }
 
-string unsigned2string(unsigned i){
-	char ch[256];
-	sprintf(ch,"%d",i);
-	return string(ch);
-}
-string int2string(int i){
-	char ch[256];
-	sprintf(ch,"%i",i);
-	return string(ch);
-}
 
 z3::expr Monomial::intEval(const z3::expr_vector& domain)const{
+//	cout<<domain<<"\n"<<flush;
+//	printf(" coefficient: %i\n",coefficient);
+//	for(unsigned i=0;i<degrees.size();i++)
+//	  printf(" %i",degrees[i]);
+//	cout<<"\n"<<flush;
 	assert(domain.size()==degrees.size());
-	context& c=domain[0].ctx();
+	z3::context& c=domain[0].ctx();
 	z3::expr result=c.real_val(int2string(coefficient).c_str());
 	for(unsigned i=0;i<degrees.size();i++){
 		for(int j=0;j<degrees[i];j++)
-			result*=domain[i];
+			result=result*domain[i];
 	}
 	return result;
 }

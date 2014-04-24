@@ -265,10 +265,8 @@ bool Polynomial::isZero() const{
 }
 
 Polynomial Polynomial::derivative( const int varIndex) const{
-	result = *this;
-
-	vector<Monomial>::iterator iter;
-	
+	Polynomial result = *this;
+	vector<Monomial>::iterator iter;	
 	for(iter = result.monomials.begin(); iter != result.monomials.end(); ){
 		if(iter->degrees[varIndex] > 0){
 			double tmp = iter->degrees[varIndex];
@@ -333,13 +331,10 @@ int Polynomial::constant(){
 }
 z3::expr Polynomial::intEval(const z3::expr_vector& domain)const{
 	assert(domain.size()!=0);
-	context& c=domain[0].ctx();
-	z3::expr exp(c);
+	z3::context& c=domain[0].ctx();
+	z3::expr exp=c.real_val("0");
 	for(unsigned i=0;i<monomials.size();i++){
-		if(i==0)
-		  exp=monomials[i].intEval(domain);
-		else
-		  exp+=monomials[i].intEval(domain);
+		exp=exp+monomials[i].intEval(domain);
 	}
 	return exp;
 }

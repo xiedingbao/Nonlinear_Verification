@@ -1,10 +1,11 @@
 #include "hybridReach.h"
-using namespace minisat
+using namespace std;
 
 
-hybridReach:hybridReach(Automaton* aut, int _target, int _bound):automaton(aut),target(_target),bound(_bound)verify(aut){i
-	this->target_name = automaton->getNodeName(target);
-	num_of_path=0;
+hybridReach::hybridReach(Automaton* aut,int _target,int _bound):automaton(aut),target(_target),bound(_bound),verify(aut){
+	State* st = automaton->getState(_target);
+	this->target_name = st->name;
+	num_of_path = 0;
 }
 
 /* Bounded reachability analysis return false:unreachable true:reachable */
@@ -30,7 +31,7 @@ bool hybridReach::solve(){
 				num_of_path++;
 				vector<int> path=decode_path();
 				if(verify.check_path(path)){   //the path is feasible, terminate
-					reachPath=get_path_name(path,true);
+					reachPath=get_path_name(path);
 					return true;
 				}
 				else				//infeasible, feed the IIS path to the SAT solver
@@ -56,7 +57,7 @@ void  hybridReach::block_path(vector<int> path){
 		}
 		pathsegment.push_back(path[2*pathEnd]);
 		if(VERBOSE_LEVEL>0){			
-			cout<<"IIS Path: "<<get_path_name(pathsegment,false)<<endl;
+			cout<<"IIS Path: "<<get_path_name(pathsegment)<<endl;
 		}			
 		int loop = bound-(pathEnd-pathStart);
 		for(int i=0;i<=loop;i++){
@@ -70,7 +71,7 @@ void  hybridReach::block_path(vector<int> path){
 }
 
 /*encode the bounded graph structure of LHA into a propositional formula set*/
-void hybridreach::encode_graph(){
+void hybridReach::encode_graph(){
 	Minisat::vec<Minisat::Lit> lits;
 	//initial condition	
 	for(unsigned i=0;i<automaton->states.size();i++){
@@ -108,7 +109,7 @@ void hybridreach::encode_graph(){
 				lits.clear();
 				for(unsigned j=0;j<st.nextTrans.size();j++){
 					Minisat::Lit next_tran_exp=var(k,st.nextTrans[j]->ID);
-					Minisat::Lit next_state_exp=var(k+1,st.nextTrans[j]->toState->ID);
+					Minisat::Lit next_state_exp=var(k+1,st.nextTrans[j]->targetState->ID);
 					s.addClause(~x, ~next_tran_exp, next_state_exp);
 					lits.push(next_tran_exp);
 				}
@@ -146,7 +147,7 @@ vector<int>  hybridReach::decode_path(){
 		  break;
 	}
 	if(VERBOSE_LEVEL>0)
-		printf("checking path: %s\n",get_path_name(compress_path, false).c_str());
+		printf("checking path: %s\n",get_path_name(compress_path).c_str());
 	delete[] path;
 	return compress_path;
 }
@@ -161,16 +162,13 @@ string hybridReach::get_path_name(vector<int> path){
 	string name="";
 	unsigned path_len = path.size();
 	for(unsigned i=0;i<path_len;i++){
-		if(i%2==0)
-			name+=automaton->getState(path[i])->name;
-		else
-			name+=automaton->getTransition(path[i])->label;
+		name+=automaton->nodeName(path[i]);
 		if(i != path_len-1)
 		  name += "^";
 	}
 	return name;
 }
-Minisat::Lit hybridReachn::var(const int loop, const int st){
+Minisat::Lit hybridReach::var(const int loop, const int st){
 	int state_num=automaton->states.size()+automaton->transitions.size();;
 	int var= state_num*loop+st+1;
 	while (var >= s.nVars()-1) s.newVar();
@@ -183,4 +181,6 @@ void hybridReach::decode(int code,int& loop,int& ID){
 	loop = code/state_num;
 	ID = code%state_num;
 }
-
+/* destructor */
+hybridReach::~hybridReach(){
+}

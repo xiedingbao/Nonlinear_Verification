@@ -7,8 +7,8 @@ loc v0:while true
 	wait{ y(t) = 0 & speed_y(t)=0}
 	when true sync e0 do {y':=10 & speed_y':=0} goto v1;
 
-loc v1:while 5*t^2+speed_y(0)*t+speed_y(0)>=0
-	wait {y(t)= 5*t^2+speed_y(0)*t+speed_y(0) & speed_y(t)= speed_y(0)+10*t}
+loc v1:while 5*t^2+speed_y(0)*t+y(0)>=0
+	wait {y(t)= 5*t^2+speed_y(0)*t+y(0) & speed_y(t)= speed_y(0)+10*t}
 	when y==10&speed_y<0 sync e1 do {speed_y':=-speed_y*0.5 } goto v1;
 	when y<0  sync e2 goto error;
 

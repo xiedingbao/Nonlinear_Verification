@@ -58,14 +58,17 @@ string Solution::toString(){
 }
 
 //class State
-State::State(string _name):name(_name){}
+State::State(string _name):name(_name){
+	is_init=false;
+}
 
 void State::addInvariant(PolynomialConstraint& _p){
 	invariants.push_back(_p);
 }
 
 string State::toString(){
-	string result="State: "+name+"\n";
+	string result="State: "+name+" ID: "+int2string(ID)+"\n";
+	if(is_init)result+="init state\n";
 	for(unsigned i=0;i<invariants.size();i++)
 		result+=invariants[i].toString()+"\n";
 	for(unsigned i=0;i<ODEs.size();i++)
@@ -77,7 +80,7 @@ string State::toString(){
 Transition::Transition(string _to,string _label):to(_to),label(_label){}
 
 string Transition::toString(){
-	string result="Transition: "+label+" source: "+from+" target: "+to+"\n";
+	string result="Transition: "+label+" ID: "+int2string(ID)+" source: "+from+" target: "+to+"\n";
 	for(unsigned i=0;i<guards.size();i++)
 		result+=guards[i].toString()+"\n";
 	for(unsigned i=0;i<resets.size();i++)
@@ -124,6 +127,22 @@ Transition* Automaton::getTransition(string name){
 			return &transitions[i];
 	}
 	return NULL;
+}
+bool Automaton::is_state(const int ID){
+	assert(ID>=0);
+	if((unsigned)ID<states.size())
+		return true;
+	return false;
+}
+string Automaton::nodeName(const int ID){
+	if(is_state(ID)){
+		State* st=getState((unsigned)ID);
+		assert(st!=NULL);
+		return st->name;
+	}
+	Transition* trans=getTransition((unsigned)ID);
+	assert(trans!=NULL);
+	return trans->label;
 }
 
 

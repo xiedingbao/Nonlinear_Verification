@@ -37,6 +37,13 @@ string int2string(const int i)
   str=chr;
   return str;
 }
+
+string unsigned2string(unsigned i){
+	char ch[256];
+	sprintf(ch,"%d",i);
+	return string(ch);
+}
+
  // convert integer to char, but only up to 256 digits!
 string double2string(const double d)
 {

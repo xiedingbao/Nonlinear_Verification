@@ -3,7 +3,7 @@
 	#include <stdlib.h>
 	#include <string.h>
 	#include "Automaton.h"
-
+	#include "hybridReach.h"
 	#define DEBUG false
 
 	bool syntax_error=false;
@@ -41,7 +41,7 @@
 %type<state> location
 %type<poly>  ODEpolynomial polynomial
 %type<ODE> ODEsolution
-%type<polycon> constraint constr_list_no_and 
+%type<polycon> constraint constr_list_no_and invariant_no_and
 %type<transitionlist> transition_list
 %type<transition> transition
 
@@ -125,6 +125,8 @@ forbidden:
 			fprintf(stderr,"You should input an integer as the threshold!\n");
 			exit(1);
 		}
+		hybridReach reach(aut,st->ID,inputbound);
+		reach.check();
 
 	}
 
@@ -308,18 +310,56 @@ assign_set_no_and:
 	;
 
 invariant_set:
-	constr_list
+	invariant_no_and '&' invariant_set
 	{ 
-		$$=$1;
+		$$=$3;
+		if($1!=NULL)
+			$$->push_back(*$1);
+		delete $1;
+	}
+	|invariant_no_and
+	{
+		$$=new vector<PolynomialConstraint>();
+		if($1!=NULL)
+			$$->push_back(*$1);
+		delete $1;
 	}
 	;
+invariant_no_and:
+	ODEpolynomial OGE NUM
+	{
+		$$=new PolynomialConstraint(*$1,GE,$3);
+		delete $1;	
+	}
+	|ODEpolynomial OLE NUM	
+	{	
+		$$=new PolynomialConstraint(*$1,LE,$3);
+		delete $1;
+	}
+	|ODEpolynomial OGT NUM	
+	{
+		$$=new PolynomialConstraint(*$1,GT,$3);
+		delete $1;	
+	}
+	|ODEpolynomial OLT NUM	
+	{
+		$$=new PolynomialConstraint(*$1,LT,$3);
+		delete $1;
+	}
+	|ODEpolynomial OEQ NUM	
+	{	
+		$$=new PolynomialConstraint(*$1,EQ,$3);
+		delete $1;	
+	}
+	|TRUE {$$ = NULL;}
+	;
+
 guard_set:
 	constr_list
 	{ 
 		$$=$1;
 	}
 	;
-
 constr_list:
 	constr_list_no_and '&' constr_list
 	{ 
@@ -378,7 +418,13 @@ constraint:
 ;
 
 
-polynomial: polynomial '+' polynomial
+polynomial:
+ODEpolynomial
+{
+	$$=$1;
+}
+|
+polynomial '+' polynomial
 {
 	$$ = $1;
 	(*$$) += (*$3);
@@ -453,10 +499,7 @@ NUM
 	int I = atoi($1);
 	$$ = new Polynomial(I, numVars);
 }
-|ODEpolynomial
-{
-	$$=$1;
-}
+
 
 ;
 
@@ -538,14 +581,13 @@ ODEpolynomial '^' NUM
 	$$->mul_assign(I);
 }
 |IDENT
-{
+{	
 	if(strcmp($1,"t")!=0)
 		yyerror("solution should be a function of time t\n");
 	int numVars = aut->dimension()+1;
 	int I = 1;
 	vector<int> degrees;
-	for(int i=0; i<numVars; ++i)
-	{
+	for(int i=0; i<numVars; ++i){
 		degrees.push_back(0);
 	}
 	degrees[numVars-1] = 1;

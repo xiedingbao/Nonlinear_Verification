@@ -5,6 +5,7 @@
 #include <cassert>
 #include <stdio.h>
 #include <string>
+#include "general.h"
 
 using namespace std;
 
@@ -89,6 +90,8 @@ public:
 	Transition* getTransition(string name);
 	int getIDForVar(string name);
 	int dimension();
+	bool is_state(const int ID);
+	std::string nodeName(const int ID);
 };
 
 

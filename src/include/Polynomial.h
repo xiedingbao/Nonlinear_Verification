@@ -51,6 +51,8 @@ public:
 //	void sub(Polynomial & result, const Polynomial & P, const int order) const;		// compute the subtraction of the monomials with some order
 	bool isConstant();	
 	std::string toString();	// transform a polynomial to a string
+
+	friend class Verification;
 };
 
 #endif

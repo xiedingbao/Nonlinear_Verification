@@ -44,7 +44,7 @@ bool quickExplain::solve(vector<unsigned> constraints){
 	s.push();
 	add_c_lits(s,constraints);
 	check_result result=s.check();
-	cout<<s<<"\n"<<result<<"\n";
+//	cout<<s<<"\n"<<result<<"\n";
 	assert(result!=unknown);
 	s.pop();
 	return result;
