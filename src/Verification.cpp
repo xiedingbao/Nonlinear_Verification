@@ -20,22 +20,20 @@ bool Verification::check_path(vector<int> path){
 	clear();
 	try{
 		expr_vector problem=encode_path(path);
-		cout<<problem<<endl;
+		if(VERBOSE_LEVEL>2)cout<<problem<<endl;
 		quickExplain solver(problem,c);
 		vector<unsigned> core=solver.extract_core();
-		if(core.size()==0)
-		  printf("sat\n");
+		if(core.size() == 0)
+			return true;
 		else{
-			printf("unsat, core:\n");
-			for(unsigned i=0;i<core.size();i++)
-			  cout<<problem[core[i]]<<"\n";
+			analyze_unsat_core(core,problem);
 		}
   	}
    	catch (z3::exception ex) {
 		cerr << "Error: " << ex << endl;
 		exit(1);
 	}
-	return true;
+	return false;
 }
 
 
@@ -100,8 +98,9 @@ void Verification::encode_invariant(expr_vector& problem, State* st, int index){
 void Verification::constant_derivative(Polynomial p,int index,expr_vector& problem,const expr_vector& domain_0,const expr_vector& domain_t){
 	if(p.isConstant())
 		return;
-	expr constant_symbol=(p.intEval(domain_0)>=0&&p.intEval(domain_t)>=0)||(p.intEval(domain_0)<=0&&p.intEval(domain_t)<=0);
-	addConstraint(problem, constant_symbol,index,index);
+	expr positive=p.intEval(domain_0)>=0&&p.intEval(domain_t)>=0;
+	expr negative=p.intEval(domain_0)<=0&&p.intEval(domain_t)<=0;
+	addConstraint(problem,positive||negative,index,index);
 	constant_derivative(p.derivative(automaton->vars.size()),index,problem,domain_0,domain_t);
 }
 
@@ -114,19 +113,16 @@ void Verification::encode_transition(expr_vector& problem,Transition* pre,int in
 		addConstraint(problem,switch_op(pre->guards[i].p.intEval(domain),pre->guards[i].op,pre->guards[i].value),index-1,index);
 	for(unsigned i=0;i<pre->resets.size();i++){
 		expr var_prime=var(pre->resets[i].var,index,false);
-		cout<<var_prime<<"=="<<flush;
-		cout<<pre->resets[i].p.intEval(domain)<<"\n"<<flush;
 		addConstraint(problem,var_prime==pre->resets[i].p.intEval(domain),index-1,index);
 	}
 	for(unsigned i=0;i<automaton->vars.size();i++){
 		unsigned j;
 		string _var=automaton->vars[i];
-		for(j=0;j<pre->resets.size();j++){
+		for(j=0;j<pre->resets.size();j++){         //reset
 			if(pre->resets[j].var == _var)
 				break;
 		}
-		if(j == pre->resets.size()){                //x':=x
-			cout<<var(_var,index,false)<<"=="<<var(_var,index,false)<<"\n"<<flush;
+		if(j == pre->resets.size()){                //x':=x after the transition
 			addConstraint(problem,var(_var,index,false)==var(_var,index-1,true),index-1,index);
 		}
 	}
@@ -139,14 +135,14 @@ expr Verification::time(int state_index){
 }
 
 expr Verification::var(string var, int state_index, bool prime){
-	string vname="v_"+var+"_"+int2string(state_index);
+	string vname=var+"_"+int2string(state_index);
 	if(prime)
 		vname+="_prime";
 	return c.real_const(vname.c_str());
 }
 
-expr Verification::switch_op(expr exp,Operator op,string value){
-	expr val=c.real_val(value.c_str());
+expr Verification::switch_op(expr exp,Operator op,Number & value){
+	expr val=c.real_val(value.toString().c_str());
 	switch(op){
 		case LT:return exp<val;
 		case LE:return exp<=val;
@@ -163,36 +159,20 @@ void Verification::addConstraint(expr_vector& problem, const expr& con, int star
 }
 
 
-/* analyze the unsat core to extract the infeasible path segment 
-bool Verification::analyze_unsat_core(SubsetSolver& csolver, MapSolver& msolver){
-	for(int k=0;k<MUS_LIMIT;k++){
-		vector<int> seed = msolver.next_seed();
-		if(seed.size() == 0)
-			break;
-		if(!csolver.check_subset(seed)){
-			vector<int> MUS = csolver.shrink(seed);
-			int from = INT_MAX, to = 0;
-			if(VERBOSE_LEVEL>2) printf("MUS:\n");
-			for(unsigned i=0;i<MUS.size();i++){
-				if(VERBOSE_LEVEL>2) cout<<csolver.get_constraint(MUS[i])<<endl;
-				int start = index_cache[MUS[i]].start;
-				int end   = index_cache[MUS[i]].end;
-				if(from>start)
-					from = start;
-				if(to<end)
-					to = end;
-			}
-			add_IIS(IndexPair(from,to));
-			if(UC_LEVEL == 0) break;
-			msolver.block_up(MUS);
-		}
-		else{
-			if(seed.size() == csolver.size())
-				return false;
-			msolver.block_down(seed);
-		}
+
+void Verification::analyze_unsat_core(const vector<unsigned>& core, const expr_vector& problem){
+	int from = INT_MAX, to = 0;
+	if(VERBOSE_LEVEL>2) printf("unsat core:\n");
+	for(unsigned i=0;i<core.size();i++){
+		if(VERBOSE_LEVEL>2)cout<<problem[core[i]]<<"\n"; 
+		int start = index_cache[core[i]].start;
+		int end   = index_cache[core[i]].end;
+		if(from>start)
+			from = start;
+		if(to<end)
+			to = end;
 	}
-	return true;
+	add_IIS(IndexPair(from,to));
 }
 
 void Verification::add_IIS(IndexPair index){
@@ -207,5 +187,5 @@ void Verification::add_IIS(IndexPair index){
 	core_index.push_back(index);
 }
 
-*/
+
 

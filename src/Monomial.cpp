@@ -1,19 +1,21 @@
 #include "Monomial.h"
 using namespace std;
 
+
+
 Monomial::Monomial(){}
 
-Monomial::Monomial(int I, const vector<int> & degs):coefficient(I), degrees(degs), d(0){
+Monomial::Monomial(Number I, const vector<int> & degs):coefficient(I),degrees(degs),d(0){
 	for(unsigned i=0; i<degs.size(); ++i){
 		d += degs[i];
 	}
 }
 
-Monomial::Monomial(const Monomial & monomial): coefficient(monomial.coefficient), degrees(monomial.degrees), d(monomial.d)
+Monomial::Monomial(const Monomial & monomial): coefficient(monomial.coefficient),degrees(monomial.degrees),d(monomial.d)
 {
 }
 
-Monomial::Monomial(const int I, const int numVars):d(0){
+Monomial::Monomial(const Number & I, const int numVars):d(0){
 	for(int i=0; i<numVars; ++i){
 		degrees.push_back(0);
 	}
@@ -22,16 +24,16 @@ Monomial::Monomial(const int I, const int numVars):d(0){
 
 Monomial::~Monomial(){
 	degrees.clear();
+	mpfr_clear(coefficient);
 }
 
 int Monomial::degree() const{
 	return d;
 }
 
-int Monomial::dimension() const{
+unsigned Monomial::dimension() const{
 	return degrees.size();
 }
-
 
 Monomial & Monomial::operator = (const Monomial & monomial){
 	if(this == &monomial)
@@ -73,14 +75,9 @@ bool Monomial::isLinear(int & index) const{
 
 
 z3::expr Monomial::intEval(const z3::expr_vector& domain)const{
-//	cout<<domain<<"\n"<<flush;
-//	printf(" coefficient: %i\n",coefficient);
-//	for(unsigned i=0;i<degrees.size();i++)
-//	  printf(" %i",degrees[i]);
-//	cout<<"\n"<<flush;
-	assert(domain.size()==degrees.size());
-	z3::context& c=domain[0].ctx();
-	z3::expr result=c.real_val(int2string(coefficient).c_str());
+	assert(domain.size() == dimension());
+	z3::context& c = domain[0].ctx();
+	z3::expr result=c.real_val(coefficient.toString().c_str());
 	for(unsigned i=0;i<degrees.size();i++){
 		for(int j=0;j<degrees[i];j++)
 			result=result*domain[i];
@@ -92,7 +89,7 @@ z3::expr Monomial::intEval(const z3::expr_vector& domain)const{
 string Monomial::toString(){
 	string strMono;
 	strMono += '(';
-	strMono += int2string(coefficient);
+	strMono += coefficient.toString();
 	for(unsigned i=0; i<degrees.size(); i++){
 		if(degrees[i] != 0){
 			if(degrees[i] == 1){
@@ -144,4 +141,15 @@ bool operator < (const Monomial & a, const Monomial & b){
 		}
 	}
 	return false;	// a == b
+}
+
+
+Polynomial Monomial::substitute(const vector<Polynomial> & domain){
+	assert(dimension() == domain.size());
+	Polynomial result(coefficient, dimension());
+	for(unsigned i=0;i<degrees.size();i++){
+		for(int j=0;j<degrees[i];j++)
+			result=domain[i]*domain[i];
+	}
+	return result;
 }

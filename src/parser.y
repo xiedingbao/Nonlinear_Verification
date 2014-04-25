@@ -2,16 +2,14 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <string.h>
-	#include "Automaton.h"
 	#include "hybridReach.h"
-	#define DEBUG false
+	#define DEBUG true
 
 	bool syntax_error=false;
 	extern int yylex();
 	extern int inputbound;
   	extern unsigned int line_number;
 	Automaton *aut;	
-	string target;
 
 	void yyerror(const char *msg){	
 		syntax_error=true;
@@ -23,10 +21,11 @@
      		yyerror(s.c_str());
 	}
 	int check_var(string name){
+		if(name=="t")
+			yyerror("t is an internal variable, you can't use it as the name of variable");
 		int id = aut->getIDForVar(name);
 		if(id < 0){
 			yyerror("Unknown identifier '" + name +"'.");;
-			exit(1);
 		}
 		return id;
 	}
@@ -115,24 +114,22 @@ command:
 forbidden: 
 	FORBIDDEN OEQ2 IDENT '.' '{' IDENT'}' ';' 
 	{ 	
-		target=$6;
+		string target=$6;
 		State* st=aut->getState(target);
 		if(st == NULL){
-			yyerror("The target is not a location of the automaton!");
-			exit(1);
+			yyerror(target+ "is not declared");
 		}
 		if(inputbound == 0){
 			fprintf(stderr,"You should input an integer as the threshold!\n");
 			exit(1);
 		}
-		hybridReach reach(aut,st->ID,inputbound);
+		hybridReach reach(aut, st->ID, inputbound);
 		reach.check();
-
 	}
 
 automaton:
 	AUTOMATON IDENT {aut=new Automaton($2);} automaton_body END 
-	{	printf("finish parsing\n");
+	{	
 		if(syntax_error||!aut->init()){
 			fprintf(stderr,"Syntax Error!\n");
 			exit(1);
@@ -142,7 +139,6 @@ automaton:
 		$$=aut;
 	}
 	;
-
 
 automaton_body:
 	declaration location_list initial
@@ -160,8 +156,7 @@ synclab:
 
 ident_list: 
 	ident_list ',' IDENT  
-        {
-                           
+        {    
         }
 	| IDENT 
         {          
@@ -180,7 +175,7 @@ var_list: var_list ',' IDENT
 		$$=$1; 
 		$$->push_back($3); 
 	}
-	| IDENT 
+	|IDENT 
 	{  
 		$$=new vector<string>();
 		$$->push_back($1);
@@ -194,15 +189,9 @@ initial:
 initial_state:
 	IDENT 
 	{ 
-		State* st=NULL;
-		for(unsigned i=0;i<aut->states.size();i++){
-			if(aut->states[i].name == $1){
-				st = &aut->states[i];
-				break;
-			}
-		}
+		State* st=aut->getState($1);
 		if(st == NULL)
-			yyerror("The intial location is not declared");
+			yyerror(string($1)+" is not declared");
 		else{		
 			st->is_init=true;			
 		}
@@ -212,7 +201,7 @@ initial_state:
 
 location_list:
 	location_list location_block
-	|location_block
+	|
 	;
 
 location_block:
@@ -231,7 +220,7 @@ location:
 	LOC IDENT ':' WHILE invariant_set WAIT '{' ODES '}'  
 	{ 
 		$$=new State($2);		
-		if($5!=NULL){
+		if($5 != NULL){
 			$$->invariants=*$5;
 			delete $5;
 		}				
@@ -267,7 +256,7 @@ transition:
 	WHEN guard_set SYNC IDENT DO '{' assign_set '}' GOTO IDENT ';'
 	{ 
 		$$=new Transition($10,$4);
-		if($2!=NULL){
+		if($2 != NULL){
 			$$->guards=*$2;
 			delete $2;
 		}
@@ -275,10 +264,10 @@ transition:
 		delete $7;
 	}
 
-	| WHEN guard_set SYNC IDENT GOTO IDENT ';'
+	|WHEN guard_set SYNC IDENT GOTO IDENT ';'
 	{ 
 		$$=new Transition($6,$4);
-		if($2!=NULL){
+		if($2 != NULL){
 			$$->guards=*$2;
 			delete $2;
 		}
@@ -313,16 +302,18 @@ invariant_set:
 	invariant_no_and '&' invariant_set
 	{ 
 		$$=$3;
-		if($1!=NULL)
+		if($1!=NULL){
 			$$->push_back(*$1);
-		delete $1;
+			delete $1;
+		}
 	}
 	|invariant_no_and
 	{
 		$$=new vector<PolynomialConstraint>();
-		if($1!=NULL)
+		if($1 != NULL){
 			$$->push_back(*$1);
-		delete $1;
+			delete $1;
+		}
 	}
 	;
 invariant_no_and:
@@ -371,9 +362,10 @@ constr_list:
 	| constr_list_no_and
 	{
 		$$=new vector<PolynomialConstraint>();
-		if($1!=NULL)		
+		if($1!=NULL){		
 			$$->push_back(*$1);
-		delete $1;
+			delete $1;
+		}
 	}
 	|'(' constr_list ')'
 	{
@@ -419,11 +411,6 @@ constraint:
 
 
 polynomial:
-ODEpolynomial
-{
-	$$=$1;
-}
-|
 polynomial '+' polynomial
 {
 	$$ = $1;
@@ -453,9 +440,8 @@ polynomial '*' polynomial
 polynomial '^' NUM
 {
 	int exp = atoi($3);
-	if(exp == 0)
-	{
-		int I = 1;
+	if(exp == 0){
+		Number I("1");
 		int numVars = aut->dimension();
 		$$ = new Polynomial(I,numVars );
 	}
@@ -472,16 +458,15 @@ polynomial '^' NUM
 |
 '-' polynomial %prec uminus
 {
-	int I = -1;
 	$$ = $2;
-	$$->mul_assign(I);
+	$$->inv_assign();
 }
 |
 IDENT
 {	
 	int id = check_var($1);
 	int numVars = aut->dimension();
-	int I=1;
+	Number I("1");
 	vector<int> degrees;
 	for(int i=0; i<numVars; ++i)
 	{
@@ -496,7 +481,7 @@ IDENT
 NUM
 {
 	int numVars = aut->dimension();
-	int I = atoi($1);
+	Number I($1);
 	$$ = new Polynomial(I, numVars);
 }
 
@@ -558,13 +543,12 @@ ODEpolynomial '^' NUM
 	int exp = atoi($3);
 	if(exp == 0)
 	{
-		int I=1;
+		Number I("1");
 		$$ = new Polynomial(I, aut->dimension()+1);
 	}
 	else
 	{
 		$$ = new Polynomial(*$1);
-
 		for(int i=1; i<exp; ++i)
 		{
 			(*$$) *= (*$1);
@@ -576,16 +560,15 @@ ODEpolynomial '^' NUM
 |
 '-' ODEpolynomial %prec uminus
 {
-	int I = -1;
 	$$ = $2;
-	$$->mul_assign(I);
+	$$->inv_assign();
 }
 |IDENT
 {	
 	if(strcmp($1,"t")!=0)
 		yyerror("solution should be a function of time t\n");
 	int numVars = aut->dimension()+1;
-	int I = 1;
+	Number I("1");
 	vector<int> degrees;
 	for(int i=0; i<numVars; ++i){
 		degrees.push_back(0);
@@ -603,7 +586,7 @@ ODEpolynomial '^' NUM
 		yyerror("t(0) is not permitted\n");
 	int id = check_var($1);
 	int numVars = aut->dimension()+1;
-	int I = 1;
+	Number I("1");
 	vector<int> degrees;
 	for(int i=0; i<numVars; ++i)
 	{
@@ -616,7 +599,7 @@ ODEpolynomial '^' NUM
 |NUM
 {
 	int numVars = aut->dimension()+1;
-	int I = atoi($1);
+	Number I($1);
 	$$ = new Polynomial(I, numVars);
 
 }

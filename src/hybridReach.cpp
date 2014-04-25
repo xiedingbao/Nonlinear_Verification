@@ -29,7 +29,7 @@ bool hybridReach::solve(){
 		while(true){
 			if(s.solve(var(i,target))){
 				num_of_path++;
-				vector<int> path=decode_path();
+				vector<int> path = decode_path();
 				if(verify.check_path(path)){   //the path is feasible, terminate
 					reachPath=get_path_name(path);
 					return true;
@@ -44,12 +44,13 @@ bool hybridReach::solve(){
 	return false;
 }
 
-/* extract the infeasible path segement and feed to the SAT solver */
+/* extract the infeasible path segement and feed it to the SAT solver */
 void  hybridReach::block_path(vector<int> path){
 	vector<IndexPair> indexs = verify.get_core_index();
 	for(unsigned m=0;m<indexs.size();m++){
 		int pathStart = indexs[m].start;
-		int pathEnd   = indexs[m].end;
+		int pathEnd   = indexs[m].end;		
+//		pathStart=0,pathEnd=path.size()/2;//test code
 		vector<int> pathsegment;
 		for (int i=pathStart;i<pathEnd; i++) {
 			pathsegment.push_back(path[2*i]);
@@ -58,7 +59,7 @@ void  hybridReach::block_path(vector<int> path){
 		pathsegment.push_back(path[2*pathEnd]);
 		if(VERBOSE_LEVEL>0){			
 			cout<<"IIS Path: "<<get_path_name(pathsegment)<<endl;
-		}			
+		}		
 		int loop = bound-(pathEnd-pathStart);
 		for(int i=0;i<=loop;i++){
 			Minisat::vec<Minisat::Lit> lits;
@@ -175,9 +176,9 @@ Minisat::Lit hybridReach::var(const int loop, const int st){
 	return Minisat::mkLit(var);
 }
 
-void hybridReach::decode(int code,int& loop,int& ID){
+void hybridReach::decode(int code, int& loop, int& ID){
 	code--;
-	int state_num=automaton->states.size()+automaton->transitions.size();;
+	int state_num = automaton->states.size()+automaton->transitions.size();;
 	loop = code/state_num;
 	ID = code%state_num;
 }

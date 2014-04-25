@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <string>
 #include "general.h"
+#include "Number.h"
+
 
 using namespace std;
 
@@ -15,9 +17,11 @@ class PolynomialConstraint{
 public:
 	Polynomial p;
 	Operator op;
-	string value;
+	Number value;
 	PolynomialConstraint();
-	PolynomialConstraint(Polynomial& _p,Operator op,string value);
+	PolynomialConstraint(Polynomial& _p, Operator op, const char* _value);
+	PolynomialConstraint(Polynomial& _p, Operator op, const Number & _value);
+
 	PolynomialConstraint(const PolynomialConstraint& pc);
 	PolynomialConstraint& operator = (const PolynomialConstraint& _pc); 
 	~PolynomialConstraint();

@@ -4,10 +4,12 @@
 // class PolynomialConstraint
 PolynomialConstraint::PolynomialConstraint(){}
 
-PolynomialConstraint::PolynomialConstraint(Polynomial& _p,Operator _op,string _value){
-	this->p=_p;
-	this->op=_op;
-	this->value=_value;
+PolynomialConstraint::PolynomialConstraint(Polynomial& _p,Operator _op, const char* _value):p(_p),op(_op),value(_value){
+
+}
+
+PolynomialConstraint::PolynomialConstraint(Polynomial& _p,Operator _op, const Number & _value):p(_p),op(_op),value(_value){
+
 }
 
 PolynomialConstraint::PolynomialConstraint(const PolynomialConstraint& _pc){
@@ -35,10 +37,9 @@ string PolynomialConstraint::toString(){
 		case GE:result+=">=";break;
 		default:fprintf(stderr,"unsupported operator");
 	}
-	result += value;
+	result += value.toString();
 	return result;
 }
-
 
 
 //class resetMap

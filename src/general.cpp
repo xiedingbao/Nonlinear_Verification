@@ -1,12 +1,6 @@
 #include "general.h"
 using namespace std;
 
-void pause_key()
-{
-  cout << "waiting for key:" << endl;
-  char c;
-  cin >> c;
-}          
 
 void throw_error(const char*  s){
 	cout << "fatal error: " << s << endl << flush;
@@ -15,12 +9,6 @@ void throw_error(const char*  s){
 
 void throw_error(string msg){
 	throw_error(msg.c_str());
-}
-void throw_warning(string s)
-{
-  cout << "WARNING: " << s << flush << endl;
-  cout << "Press a key and then press Enter to continue:"<< flush << endl;
-  pause_key();
 }
 
 void message(int level,string content){

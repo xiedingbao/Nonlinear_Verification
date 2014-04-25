@@ -1,6 +1,6 @@
 CXX=g++
 CFLAGS=-o2 -g -Wall -Iinclude -I. -D __STDC_LIMIT_MACROS -D __STDC_FORMAT_MACROS 
-LDFLAGS=-lpthread -lz3 -lminisat -lmpfr -lgmp 
+LDFLAGS=-lpthread -lz3 -lminisat -lmpfr  
 CPPFILES = $(shell find -name "*.cpp")
 OBJS = $(CPPFILES:.cpp=.o)
 
