@@ -25,7 +25,7 @@ public:
 	PolynomialConstraint(const PolynomialConstraint& pc);
 	PolynomialConstraint& operator = (const PolynomialConstraint& _pc); 
 	~PolynomialConstraint();
-	string toString();
+	string toString(const std::vector<std::string>& varNames);
 };
 
 class resetMap{
@@ -33,7 +33,7 @@ public:
 	string var;
 	Polynomial p;
 	resetMap(string var,Polynomial& _p);
-	string toString();
+	string toString(const std::vector<std::string>& varNames);
 };
 
 class Solution{
@@ -41,7 +41,7 @@ public:
 	string var;
 	Polynomial p;
 	Solution(string _var,Polynomial& _p);
-	string toString();
+	string toString(const std::vector<std::string>& varNames);
 };
 
 
@@ -55,10 +55,8 @@ public:
 	vector<PolynomialConstraint> invariants;
 	vector<Solution> ODEs;
 	bool is_init;
-
 	State (string _name);
-	void addInvariant(PolynomialConstraint& _p);
-	string toString();
+	string toString(const std::vector<std::string>& varNames);
 };
 
 class Transition{
@@ -71,7 +69,9 @@ public:
 	vector<resetMap> resets;
 
 	Transition(string _to, string _label);
-	string toString();
+	string toString(const std::vector<std::string>& varNames);
+
+
 };
 
 class Automaton{

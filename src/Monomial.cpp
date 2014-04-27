@@ -2,7 +2,6 @@
 using namespace std;
 
 
-
 Monomial::Monomial(){}
 
 Monomial::Monomial(Number I, const vector<int> & degs):coefficient(I),degrees(degs),d(0){
@@ -24,7 +23,6 @@ Monomial::Monomial(const Number & I, const int numVars):d(0){
 
 Monomial::~Monomial(){
 	degrees.clear();
-	mpfr_clear(coefficient);
 }
 
 int Monomial::degree() const{
@@ -59,7 +57,6 @@ Monomial & Monomial::operator *= (const Monomial & monomial){
 	return *this;
 }
 
-
 bool Monomial::isLinear(int & index) const{
 	if(d == 1){
 		for(unsigned i=0; i<degrees.size(); ++i){
@@ -73,20 +70,19 @@ bool Monomial::isLinear(int & index) const{
 	return false;
 }
 
-
-z3::expr Monomial::intEval(const z3::expr_vector& domain)const{
+z3::expr Monomial::intEval(const z3::expr_vector& domain) const{
 	assert(domain.size() == dimension());
 	z3::context& c = domain[0].ctx();
-	z3::expr result=c.real_val(coefficient.toString().c_str());
+	z3::expr result = coefficient.z3_val(c);
 	for(unsigned i=0;i<degrees.size();i++){
 		for(int j=0;j<degrees[i];j++)
-			result=result*domain[i];
+			result = result*domain[i];
 	}
 	return result;
 }
 
-
-string Monomial::toString(){
+string Monomial::toString(const std::vector<std::string> varNames) const{
+	assert(dimension()<=varNames.size());
 	string strMono;
 	strMono += '(';
 	strMono += coefficient.toString();
@@ -96,15 +92,13 @@ string Monomial::toString(){
 				strMono += ' ';
 				strMono += '*';
 				strMono += ' ';
-			//	strMono += varNames[i];
-				strMono +="var_"+unsigned2string(i);
+				strMono += varNames[i];
 			}
 			else{
 				strMono += ' ';
 				strMono += '*';
 				strMono += ' ';
-			//	strMono += varNames[i];
-				strMono +="var_"+unsigned2string(i);
+				strMono += varNames[i];
 				strMono += '^';
 				strMono += unsigned2string(degrees[i]);
 			}
@@ -143,13 +137,3 @@ bool operator < (const Monomial & a, const Monomial & b){
 	return false;	// a == b
 }
 
-
-Polynomial Monomial::substitute(const vector<Polynomial> & domain){
-	assert(dimension() == domain.size());
-	Polynomial result(coefficient, dimension());
-	for(unsigned i=0;i<degrees.size();i++){
-		for(int j=0;j<degrees[i];j++)
-			result=domain[i]*domain[i];
-	}
-	return result;
-}

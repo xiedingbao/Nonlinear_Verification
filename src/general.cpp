@@ -17,8 +17,7 @@ void message(int level,string content){
 }
 
 // convert integer to char, but only up to 256 digits!
-string int2string(const int i)
-{
+string int2string(const int i){
   char chr[256];
   string str;
   sprintf(chr,"%i",i);
@@ -26,15 +25,14 @@ string int2string(const int i)
   return str;
 }
 
-string unsigned2string(unsigned i){
+string unsigned2string(const unsigned i){
 	char ch[256];
 	sprintf(ch,"%d",i);
 	return string(ch);
 }
 
- // convert integer to char, but only up to 256 digits!
-string double2string(const double d)
-{
+// convert integer to char, but only up to 256 digits!
+string double2string(const double d){
   char chr[256];
   string str;
   sprintf(chr,"%g",d);

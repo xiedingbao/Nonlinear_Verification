@@ -49,12 +49,6 @@ Number & Number::operator *= (const Number & num){
 	return *this;
 }
 
-Number & Number::operator /= (const Number & num){
-//	Number tmp;
-//	num.rec(tmp);
-//	*this *= tmp;
-	return *this;
-}
 
 Number & Number::operator ++ (){
 	Number tmp("1");
@@ -102,9 +96,15 @@ void Number::inv_assign(){
 	*this = result;
 }
 
-std::string Number::toString() const{
+z3::expr Number::z3_val(z3::context & c)const{
 	char ch[256];
 	mpfr_sprintf(ch, "%.16Rf", value);
+	return c.real_val(ch);
+}
+
+std::string Number::toString() const{
+	char ch[256];
+	mpfr_sprintf(ch, "%.4Rf", value);
 	return std::string(ch);
 }
 

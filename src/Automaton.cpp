@@ -27,34 +27,33 @@ PolynomialConstraint& PolynomialConstraint::operator = (const PolynomialConstrai
 }
 PolynomialConstraint::~PolynomialConstraint(){}
 
-string PolynomialConstraint::toString(){
-	string result="Constraint: "+p.toString();
+string PolynomialConstraint::toString(const std::vector<std::string>& varNames){
+	string result="Constraint: "+p.toString(varNames);
 	switch(op){
-		case LT:result+="<";break;
-		case LE:result+="<=";break;
-		case EQ:result+="==";break;
-		case GT:result+=">";break;
-		case GE:result+=">=";break;
+		case LT:result+=" < ";break;
+		case LE:result+=" <= ";break;
+		case EQ:result+=" == ";break;
+		case GT:result+=" > ";break;
+		case GE:result+=" >= ";break;
 		default:fprintf(stderr,"unsupported operator");
 	}
 	result += value.toString();
 	return result;
 }
 
-
 //class resetMap
 resetMap::resetMap(string _var,Polynomial& _p):var(_var),p(_p){}
 
-string resetMap::toString(){
-	string result="reset "+var+" := ";
-	result+=p.toString();
+string resetMap::toString(const std::vector<std::string>& varNames){
+	string result="reset: "+var+" := ";
+	result += p.toString(varNames);
 	return result;
 }
 
 Solution::Solution(string _var,Polynomial& _p):var(_var),p(_p){}
 
-string Solution::toString(){
-	string result="Solution:"+var+"(t)="+p.toString();
+string Solution::toString(const std::vector<std::string>& varNames){
+	string result="Solution:"+var+"(t)="+p.toString(varNames);
 	return result;
 }
 
@@ -63,29 +62,27 @@ State::State(string _name):name(_name){
 	is_init=false;
 }
 
-void State::addInvariant(PolynomialConstraint& _p){
-	invariants.push_back(_p);
-}
-
-string State::toString(){
+string State::toString(const std::vector<std::string>& varNames){
 	string result="State: "+name+" ID: "+int2string(ID)+"\n";
 	if(is_init)result+="init state\n";
+	result+="invariant:\n";
 	for(unsigned i=0;i<invariants.size();i++)
-		result+=invariants[i].toString()+"\n";
+		result+=invariants[i].toString(varNames)+"\n";
+	result+="ODE:\n";
 	for(unsigned i=0;i<ODEs.size();i++)
-		result+=ODEs[i].toString()+"\n";
+		result+=ODEs[i].toString(varNames)+"\n";
 	return result;
 }
 
 //class Transition
 Transition::Transition(string _to,string _label):to(_to),label(_label){}
 
-string Transition::toString(){
+string Transition::toString(const std::vector<std::string>& varNames){
 	string result="Transition: "+label+" ID: "+int2string(ID)+" source: "+from+" target: "+to+"\n";
 	for(unsigned i=0;i<guards.size();i++)
-		result+=guards[i].toString()+"\n";
+		result+=guards[i].toString(varNames)+"\n";
 	for(unsigned i=0;i<resets.size();i++)
-		result+=resets[i].toString()+"\n";
+		result+=resets[i].toString(varNames)+"\n";
 	return result;
 }
 
@@ -188,10 +185,20 @@ bool Automaton::init(){
 	}
 	return true;
 }
-/* TODO  */
-void Automaton::substitute_invariant(State& st){
-//	for(unsigned i=0;i<invariants.size();i++){
-//		Polynomial& p = invariants[i].p;
+
+void Automaton::substitute_invariant(State & st){
+	vector<Polynomial> domain;
+	for(unsigned i=0;i<vars.size();i++){
+		for(unsigned j=0;j<st.ODEs.size();j++){
+			if(st.ODEs[j].var == vars[i])	
+				domain.push_back(st.ODEs[j].p);
+		}
+	}
+	assert(domain.size() == vars.size());
+	for(unsigned i=0;i<st.invariants.size();i++){
+		Polynomial& p = st.invariants[i].p;
+		p.substitute(domain);
+	}
 }		
 
 
@@ -203,10 +210,12 @@ void Automaton::print(){
 	for(unsigned i=0;i<vars.size();i++)
 	  printf(" %s",vars[i].c_str());
 	printf("\n");
+	vector<string> varNames=vars;
+	varNames.push_back("t");
 	for(unsigned i=0;i<states.size();i++)
-	  printf("%s\n",states[i].toString().c_str());
+	  printf("%s\n",states[i].toString(varNames).c_str());
 	for(unsigned i=0;i<transitions.size();i++)
-	  printf("%s\n",transitions[i].toString().c_str());
+	  printf("%s\n",transitions[i].toString(varNames).c_str());
 
 }
 

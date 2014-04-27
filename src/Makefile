@@ -8,7 +8,7 @@ all:bach
 	@echo "Congratulations"
 	
 bach: lex.yy.o parser.tab.o $(OBJS) 
-		$(CXX)  -o $@ $^ $(LDFLAGS)
+	$(CXX)  -o $@ $^ $(LDFLAGS)
 	
 %.o:%.cpp
 	$(CXX) -c $(CFLAGS) -o $@ $<
@@ -22,5 +22,6 @@ lex.yy.c:parser.l parser.tab.c
 	flex parser.l
 
 .PHONY: clean
+
 clean:
-	rm -f *.o *~ include/*~  bach parser.tab.c parser.tab.h
+	rm -f *.o *~ include/*~  bach parser.tab.c parser.tab.h lex.yy.c

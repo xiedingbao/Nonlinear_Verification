@@ -40,7 +40,7 @@
 %type<state> location
 %type<poly>  ODEpolynomial polynomial
 %type<ODE> ODEsolution
-%type<polycon> constraint constr_list_no_and invariant_no_and
+%type<polycon> constraint constr_list_no_and 
 %type<transitionlist> transition_list
 %type<transition> transition
 
@@ -134,7 +134,7 @@ automaton:
 			fprintf(stderr,"Syntax Error!\n");
 			exit(1);
 		}
-		if(DEBUG)		
+		if(VERBOSE_LEVEL>3)		
 			aut->print();					
 		$$=aut;
 	}
@@ -299,7 +299,13 @@ assign_set_no_and:
 	;
 
 invariant_set:
-	invariant_no_and '&' invariant_set
+	constr_list
+	{ 
+		$$=$1;
+	}
+	;
+/*	
+invariant_no_and '&' invariant_set
 	{ 
 		$$=$3;
 		if($1!=NULL){
@@ -344,7 +350,7 @@ invariant_no_and:
 	}
 	|TRUE {$$ = NULL;}
 	;
-
+*/
 guard_set:
 	constr_list
 	{ 

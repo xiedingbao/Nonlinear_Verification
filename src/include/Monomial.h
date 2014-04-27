@@ -5,8 +5,8 @@
 #include <cassert>
 #include <vector>
 #include "z3++.h"
-#include "general.h"
 #include "Number.h"
+#include "general.h"
 
 
 class Monomial{
@@ -30,8 +30,7 @@ public:
 	const Monomial operator + (const Monomial & monomial) const;
 	const Monomial operator * (const Monomial & monomial) const;
 	bool isLinear(int & index) const;					  // Check if the degree of the monomial is 1. If so then return the index of the variable of degree 1.
-	std::string toString();
-	
+	std::string toString(const std::vector<std::string> varNames) const;
 	friend bool operator < (const Monomial & a, const Monomial & b);	// Define a partial order over the monomials
 	friend bool operator == (const Monomial & a, const Monomial & b);
 	friend class Polynomial;

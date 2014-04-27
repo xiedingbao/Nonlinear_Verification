@@ -58,14 +58,19 @@ void Polynomial::inv_assign(){
 		monomials[i].coefficient.inv_assign();;
 }
 
-void Polynomial::mul_assign(const Monomial& monomial){
+void Polynomial::mul_assign(const Monomial & monomial){
+//	printf("(%s) * (%s) = ",toString().c_str(),monomial.toString().c_str());
+
 	Number zero;
-	if(monomial.coefficient == zero)
+	if(monomial.coefficient == zero){
 		clear();
+	}
 	else{
 		for(unsigned i=0;i<monomials.size();i++)
-		  monomials[i] *= monomial;
+			monomials[i] *= monomial;
 	}
+//	printf("%s\n",toString().c_str());
+
 }
 
 void Polynomial::mul_assign(const Number & I){
@@ -95,7 +100,9 @@ Polynomial & Polynomial::operator = (const Polynomial & polynomial){
 Polynomial & Polynomial::operator += (const Polynomial & polynomial){
 	Polynomial result;
 	unsigned i,j;
-	for(i=0,j=0;i<monomials.size()&&j<polynomial.monomials.size();){
+	for(i=0,j=0;;){
+		if(i==monomials.size() || j==polynomial.monomials.size())
+			break;
 		if(monomials[i]<polynomial.monomials[j])
 			result.monomials.push_back(monomials[i++]);
 		else if(polynomial.monomials[j]<monomials[i])
@@ -103,7 +110,8 @@ Polynomial & Polynomial::operator += (const Polynomial & polynomial){
 		else{
 			Number coeffTemp = monomials[i].coefficient+polynomial.monomials[j].coefficient;
 			Monomial monoTemp(monomials[i]);
-			monoTemp.coefficient=coeffTemp;
+			monoTemp.coefficient = coeffTemp;
+			result.monomials.push_back(monoTemp);
 			i++,j++;
 		}
 	}
@@ -111,7 +119,7 @@ Polynomial & Polynomial::operator += (const Polynomial & polynomial){
 		for(;j<polynomial.monomials.size();j++)
 			result.monomials.push_back(polynomial.monomials[j]);
 	}
-	if(i!=monomials.size() && j==polynomial.monomials.size()){
+	else if(i!=monomials.size() && j==polynomial.monomials.size()){
 		for(;i<monomials.size();i++)
 			result.monomials.push_back(monomials[i]);
 	}
@@ -128,7 +136,7 @@ Polynomial & Polynomial::operator -= (const Polynomial & polynomial){
 
 Polynomial & Polynomial::operator *= (const Polynomial & polynomial){
 	Polynomial result;
-	if((monomials.size() == 0) || (polynomial.monomials.size() == 0)){
+	if((monomials.size()==0) || (polynomial.monomials.size()==0)){
 		this->clear();
 		return *this;
 	}
@@ -159,20 +167,12 @@ const Polynomial Polynomial::operator * (const Polynomial & polynomial) const{
 	return result;
 }
 
-/*
-void Polynomial::rmConstant(){
-	if(monomials.size() > 0 && (monomials.begin())->d == 0){
-		monomials.erase( monomials.begin() );
-	}
-}
-*/
+
 int Polynomial::degree() const{
-	if(monomials.size() > 0){
+	if(monomials.size() > 0)
 		return monomials.back().d;
-	}
-	else{
+	else
 		return 0;
-	}
 }
 
 bool Polynomial::isZero() const{
@@ -201,50 +201,6 @@ Polynomial Polynomial::derivative( const int varIndex) const{
 	}
 	return result;
 }
-
-
-/*
-void Polynomial::sub(Polynomial & result, const Polynomial & P, const int order) const
-{
-	list<Monomial> monomials1, monomials2;
-	list<Monomial>::const_iterator iter;
-
-	for(iter = monomials.begin(); iter != monomials.end(); ++iter)
-	{
-		if(iter->d == order)
-		{
-			monomials1.push_back(*iter);
-		}
-	}
-
-	for(iter = P.monomials.begin(); iter != P.monomials.end(); ++iter)
-	{
-		if(iter->d == order)
-		{
-			monomials2.push_back(*iter);
-		}
-	}
-
-	Polynomial P1(monomials1), P2(monomials2);
-	result = P1 - P2;
-}
-*/
-
-string Polynomial::toString() {
-	string strPoly;
-	if(monomials.size() == 0){
-		return "(0)";
-	}
-	strPoly += '(';
-	for(unsigned i=0;i<monomials.size();i++){
-		strPoly +=monomials[i].toString();
-		if(i!=monomials.size()-1)
-		  strPoly+=" + ";
-	}
-	strPoly += ')';
-	return strPoly;
-}
-
 Number Polynomial::constant(){
 	Number zero;
 	if(monomials.size()>0 && monomials[0].d==0)
@@ -254,18 +210,36 @@ Number Polynomial::constant(){
 
 z3::expr Polynomial::intEval(const z3::expr_vector& domain)const{
 	assert(domain.size()!=0);
-	z3::context& c=domain[0].ctx();
-	z3::expr exp=c.real_val("0");
+	z3::context& c = domain[0].ctx();
+	z3::expr exp = c.real_val("0");
 	for(unsigned i=0;i<monomials.size();i++){
-		exp=exp+monomials[i].intEval(domain);
+		exp = exp+monomials[i].intEval(domain);
 	}
 	return exp;
 }
 
+
 void Polynomial::substitute(const vector<Polynomial>& domain){
-	
+	Polynomial result;
+	if((monomials.size()==0) || (domain.size()==0)){
+		this->clear();
+		return;
+	}
+	for(unsigned i=0;i<monomials.size();i++){
+		result += substitute(monomials[i],domain);
+	}
+	*this = result;
+	reorder();
+}
 
-
+Polynomial Polynomial::substitute(const Monomial & mono, const vector<Polynomial> & domain){
+	assert(mono.dimension() == domain.size());
+	Polynomial result(mono.coefficient, mono.dimension()+1);
+	for(unsigned i=0;i<mono.degrees.size();i++){
+		for(int j=0;j<mono.degrees[i];j++)
+			result *= domain[i];
+	}
+	return result;
 }
 
 bool Polynomial::isConstant(){
@@ -273,3 +247,18 @@ bool Polynomial::isConstant(){
 		return true;
 	return false;
 }
+
+string Polynomial::toString(const std::vector<std::string> varNames) const{
+	string strPoly;
+	if(monomials.size() == 0){
+		return "0";
+	}
+	for(unsigned i=0;i<monomials.size();i++){
+		strPoly += monomials[i].toString(varNames);
+		if(i!=monomials.size()-1)
+		  strPoly+=" + ";
+	}
+	return strPoly;
+}
+
+

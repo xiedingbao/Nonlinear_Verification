@@ -2,6 +2,7 @@
 #define _BACH_NUMBER_H
 #include <mpfr.h>
 #include <string>
+#include "z3++.h"
 
 class Number{
 private:
@@ -20,7 +21,6 @@ public:
 	Number & operator += (const Number& num);
 	Number & operator -= (const Number& num);
 	Number & operator *= (const Number& num);
-	Number & operator /= (const Number& num);
 	Number & operator ++ ();
 	Number & operator -- ();
 
@@ -32,8 +32,7 @@ public:
 	void inv(Number & result) const;
 	void inv_assign();
 	std::string toString()const;
-
-
+	z3::expr z3_val(z3::context & c) const;
 
 };
 
